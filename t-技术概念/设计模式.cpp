@@ -2,7 +2,12 @@
 #include<mutex>
 #include<atomic>
 
-//设计模式：单例模式的设计方式
+/*
+1、单例模式
+2、工厂模式
+*/
+
+//设计模式：两种单例模式的设计方式
 
 class Singleton {
 
@@ -76,6 +81,28 @@ public:
 std::atomic<Singleton2*> Singleton2::m_instance{nullptr};
 std::mutex Singleton2::m_mutex;
 
+class Base {
+public:
+    virtual void produce() = 0;
+    //virtual void consume();
+    virtual ~Base(){}
+
+};
+
+class Factory1:public Base {
+public:
+    void produce()final{std::cout<<"Factory1\n";}
+};
+
+class Factory2:public Base {
+public:
+    void produce()final{std::cout<<"Factory2\n";}
+
+};
+
+void run(Base &base) {
+    base.produce();
+}
 
 int main() {
     Singleton *newinstance = Singleton::GetInstance();
@@ -86,6 +113,14 @@ int main() {
 
     if (newinstance == again) std::cout << "same object.\n"; 
     if (newinstance2 == again2) std::cout << "same object2.\n"; 
+
+
+    Base *base1 = new Factory1;
+
+    run(*base1);
+
+    Base *base2 = new Factory2;
+    run(*base2);
 
     std::cin.get();
 
