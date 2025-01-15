@@ -80,17 +80,9 @@ QPushButton、QToolButton、QCheckBox、QRadioButton与QButtonGroup配合使用�
 
 Qwidget没有自动默认按钮的，QDialog有；
 
-
-
 QToolButton可以设置成图标加文字的形式，新建对象之后，需要调用相关方法来设置位置和大小，设置text和icon
 
-
-
-
-
 QButtonGroup，管理radioButton对象
-
-
 
 QCheckBox复选框，有选中何为选中状态，还有部分选中状态；connect中有状态触发和切换触发的信号。
 
@@ -140,15 +132,131 @@ QCheckBox复选框，有选中何为选中状态，还有部分选中状态；co
 
 
 
+设计窗口，先画出来，然后按照拆分每一部分的*控件*
+
+- 水平布局
+- 垂直布局
+- 分裂布局
+- 网格布局
+- 弹簧：垂直弹簧、水平弹簧
+
+## 12、部件
+
+Dialog对话框，分为模态对话框、非模态对话框；
+
+exec：没有关闭的情况下，会一直显示；模态；
+
+show：在非模态对话框中使用；
 
 
 
+使用在消息、颜色、 字体、文件四种种类型的对话框中；
+
+一定善于查询帮助文档；
 
 
 
+## 13、窗口之QMainWindow
+
+窗口编写就是一个个套娃，清楚知道这些函数方法的用法和使用场景就可以使用；
+
+创建菜单栏；
+
+QMenu、QMenuBar、QAction；setShortCut方法；
+
+创建浮动窗口，DockWidget有一个停靠和浮动的效果；
+
+创建中心部件：setCentralWidget
+
+创建状态栏：StatusBar
 
 
 
+## 14、QT事件处理事件
 
+事件：内部或者外部产生的事件。
 
+区别信号，信号是一个同步的过程；
 
+比如鼠标相关事件、定时器事件
+
+定时器事件：
+
+**事件**QEvent
+
+鼠标和键盘事件
+
+- 鼠标
+
+  - 继承自QInputEvent
+  - QMouseEvent
+  - 按键类型：左键、中键、右键、宏定义按键
+  - 事件类型鼠标点击、释放等
+
+- 键盘
+
+  - 按键按下、释放事件
+  - 单一按键
+  - 组合按键
+
+    - 先判断modifiers方法
+
+      - 在进行判断单一按键
+
+- 事件操作都是虚函数，需要在自己窗口中重写
+
+**定时器事件**：定时去做一些事情
+
+- QTimerEvent
+- TimerEvent
+- QTimer
+
+  - 实现定时器功能
+  - 是常用的方式
+
+**绘图事件**
+
+- QPaintEvent
+
+  - 继承自QEvent
+
+- 使用场景：绘制仪表盘等
+- 创建画布
+
+  - 创建画笔
+
+    - 设置画笔属性
+
+      - 将画布和画笔关联
+
+- 使用pen.save和pen.restore
+
+  - 之间的设置样式只在其中有效
+
+## 15、事件传递过程
+
+- 事件过滤器
+
+  - QT的处理方式，拦截事件
+  - 步骤
+
+    - 1、安装事件过滤器
+    - 2、重写eventFilter函数，这是一个虚函数
+
+  - eventFilter
+
+    - 根据evetnType类型来确定是否在一个对象中，不同对象有不同的拦截动作
+
+## 16、动画制作
+
+`QSplashScreen`
+
+- 动画切换效果
+
+**动画设计与特效处理**
+
+- `QPropertyAnimation`
+  - 使用状态机来实现组合特效的制作
+  - `QStateMachine`
+
+- 以`QGraphicBlurAffect`为代表的：模糊、染色、阴影、透明特效设置；
