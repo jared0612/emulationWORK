@@ -12,7 +12,7 @@
 # 2、asyncio模块：提供事件循环、任务调度；
 # 3、task对象：待执行的工作单元
 # 4、异步上下文管理使用async with as 语法
-# 5、with xx as xx简化资源管理的过程，上下文管理对象必须实现__enter__\__exit__方法
+# 5、with xx as xx：简化资源管理的过程，上下文管理对象必须实现__enter__\__exit__方法
 # 6、as后的变量通常赋值为__enter__方法的返回值；
 # 7、with前执行__enter__方法，with块后执行__exit__方法；
 
