@@ -427,3 +427,19 @@ QMenu、QMenuBar、QAction；setShortCut方法；
 - ![alt text](image-3.png)
 
 
+## 元对象系统和属性系统
+
+属性系统包含属性定义、动态属性，可以通过`setProterty()函数`设置类定义的动态属性；
+
+宏定义：
+- Q_PROPERTY，给类定义设置属性信息
+- Q_CLASSINFO，给类定义增加附加信息
+
+QObject,QMetaProperty,QMetaClassInfo，
+QMetaObject，封装了访问元对象的接口函数；QObject类中定义了有设置属性的方法；QMetaClassInfo类型，有name和value函数获取属性的名称和值；
+
+## 全局定义文件
+
+<QGlobal>定义了基本数据类型、宏定义、算法函数等；
+
+如果要使用的时候，可以查询全局定义中定义的相关函数和宏定义；
