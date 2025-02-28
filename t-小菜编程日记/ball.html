@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>六边形和小球弹跳</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f0f4f8;  /* iOS风格背景色 */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+        }
+
+        canvas {
+            display: block;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 设置画布大小
+        canvas.width = 800;
+        canvas.height = 600;
+
+        // 六边形参数
+        const hexRadius = 100;  // 六边形半径
+        const hexCenter = { x: canvas.width / 2, y: canvas.height / 2 };  // 六边形中心点
+        let hexAngle = 0;  // 六边形旋转角度
+        const hexRotationSpeed = 0.01;  // 六边形旋转速度
+
+        // 小球参数
+        const ballRadius = 10;
+        let ballPos = { x: hexCenter.x, y: hexCenter.y };  // 小球位置
+        let ballVel = { x: 0, y: 0 };  // 小球速度
+        const gravity = 0.1;  // 重力
+        const friction = 0.99;  // 摩擦系数
+
+        // 计算六边形的顶点
+        function drawHexagon() {
+            const points = [];
+            for (let i = 0; i < 6; i++) {
+                const angle = hexAngle + (Math.PI / 3) * i;
+                const x = hexCenter.x + hexRadius * Math.cos(angle);
+                const y = hexCenter.y + hexRadius * Math.sin(angle);
+                points.push({ x, y });
+            }
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let i = 1; i < points.length; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = '#e74c3c';  // 六边形颜色
+            ctx.fill();
+            ctx.strokeStyle = '#c0392b';  // 六边形边框颜色
+            ctx.stroke();
+            return points;
+        }
+
+        // 计算小球和六边形的碰撞
+        function handleBallCollision(points) {
+            for (let i = 0; i < points.length; i++) {
+                const p1 = points[i];
+                const p2 = points[(i + 1) % points.length];
+
+                const edgeVector = { x: p2.x - p1.x, y: p2.y - p1.y };
+                const ballToP1 = { x: ballPos.x - p1.x, y: ballPos.y - p1.y };
+
+                // 投影长度
+                const projection = (ballToP1.x * edgeVector.x + ballToP1.y * edgeVector.y) /
+                                   (edgeVector.x * edgeVector.x + edgeVector.y * edgeVector.y);
+
+                let closestPoint;
+                if (projection < 0) {
+                    closestPoint = p1;
+                } else if (projection > 1) {
+                    closestPoint = p2;
+                } else {
+                    closestPoint = { x: p1.x + projection * edgeVector.x, y: p1.y + projection * edgeVector.y };
+                }
+
+                const distance = Math.sqrt((ballPos.x - closestPoint.x) ** 2 + (ballPos.y - closestPoint.y) ** 2);
+                if (distance < ballRadius) {
+                    // 计算法线
+                    const normal = { x: ballPos.x - closestPoint.x, y: ballPos.y - closestPoint.y };
+                    const normalLength = Math.sqrt(normal.x * normal.x + normal.y * normal.y);
+                    normal.x /= normalLength;
+                    normal.y /= normalLength;
+
+                    // 反射小球速度
+                    const dotProduct = ballVel.x * normal.x + ballVel.y * normal.y;
+                    ballVel.x -= 2 * dotProduct * normal.x;
+                    ballVel.y -= 2 * dotProduct * normal.y;
+
+                    // 摩擦力
+                    ballVel.x *= friction;
+                    ballVel.y *= friction;
+
+                    // 防止小球穿透六边形边缘
+                    const overlap = ballRadius - distance;
+                    ballPos.x += normal.x * overlap;
+                    ballPos.y += normal.y * overlap;
+                }
+            }
+        }
+
+        // 更新小球的位置
+        function updateBall() {
+            ballVel.y += gravity;  // 应用重力
+            ballPos.x += ballVel.x;
+            ballPos.y += ballVel.y;
+        }
+
+        // 绘制小球
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ballPos.x, ballPos.y, ballRadius, 0, Math.PI * 2);
+            ctx.fillStyle = '#3498db';  // 小球颜色
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        // 动画循环
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);  // 清除画布
+
+            hexAngle += hexRotationSpeed;  // 更新六边形角度
+
+            // 绘制六边形和小球
+            const hexPoints = drawHexagon();
+            updateBall();
+            handleBallCollision(hexPoints);
+            drawBall();
+
+            // 继续动画
+            requestAnimationFrame(animate);
+        }
+
+        // 启动动画
+        animate();
+    </script>
+</body>
+</html>
