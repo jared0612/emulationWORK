@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            background: #000;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* 防止滚动条出现 */
+        }
+
+        .dialog {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2rem;
+            border-radius: 15px;
+            font-family: Arial, sans-serif;
+            color: #333;
+            text-align: center;
+            position: relative;
+            box-shadow: 
+                0 0 20px 10px rgba(255, 0, 0, 0.5), /* 初始阴影 */
+                0 0 20px 10px rgba(0, 255, 0, 0.5), /* 第二个阴影 */
+                0 0 20px 10px rgba(0, 0, 255, 0.5); /* 第三个阴影 */
+        }
+
+        .dialog h2 {
+            margin: 0 0 1rem 0;
+        }
+
+        .dialog p {
+            margin: 0;
+            color: #666;
+        }
+
+        /* 粒子样式 */
+        .particle {
+            position: absolute;
+            background: hsl(0, 100%, 50%);
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: flow 10s linear infinite;
+        }
+
+        @keyframes flow {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dialog">
+        <h2>系统消息</h2>
+        <p>操作已成功完成！</p>
+    </div>
+
+    <script>
+        const dialog = document.querySelector('.dialog');
+        let hue = 0;
+        let phase = 0;
+
+        // 创建粒子
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            document.body.appendChild(particle);
+
+            // 随机位置
+            const size = Math.random() * 5 + 2; // 粒子大小 2-7px
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = Math.random() * window.innerWidth + 'px';
+            particle.style.top = Math.random() * window.innerHeight + 'px';
+
+            // 随机颜色
+            const randomHue = Math.floor(Math.random() * 360);
+            particle.style.backgroundColor = `hsl(${randomHue}, 100%, 50%)`;
+
+            // 随机动画延迟
+            const delay = Math.random() * 5; // 动画延迟 0-5s
+            particle.style.animationDelay = `${delay}s`;
+
+            // 粒子消失
+            setTimeout(() => {
+                particle.remove();
+            }, 10000); // 粒子存活时间 10s
+        }
+
+        // 动画粒子
+        function animateParticles() {
+            for (let i = 0; i < 20; i++) { // 创建 20 个粒子
+                createParticle();
+            }
+        }
+
+        // 呼吸效果
+        function animate() {
+            // 呼吸效果参数
+            const minBlur = 15;
+            const maxBlur = 30;
+            const minSpread = 5;
+            const maxSpread = 15;
+            const minOpacity = 0.3;
+            const maxOpacity = 0.7;
+
+            // 使用正弦波计算动画进度
+            const t = (Math.sin(phase) + 1) / 2;
+            
+            // 计算当前值
+            const currentBlur = minBlur + (maxBlur - minBlur) * t;
+            const currentSpread = minSpread + (maxSpread - minSpread) * t;
+            const currentOpacity = minOpacity + (maxOpacity - minOpacity) * t;
+            
+            // 更新色相（颜色渐变速度）
+            hue = (hue + 0.7) % 360;
+
+            // 应用动态阴影
+            dialog.style.boxShadow = `
+                0 0 ${currentBlur}px ${currentSpread}px hsla(${hue}, 100%, 50%, ${currentOpacity}),
+                0 0 ${currentBlur}px ${currentSpread}px hsla(${hue + 120}, 100%, 50%, ${currentOpacity}),
+                0 0 ${currentBlur}px ${currentSpread}px hsla(${hue + 240}, 100%, 50%, ${currentOpacity})
+            `;
+
+            // 更新动画相位（呼吸速度）
+            phase += 0.04;
+            
+            requestAnimationFrame(animate);
+        }
+
+        // 启动动画
+        animate();
+        animateParticles();
+    </script>
+</body>
+</html>
