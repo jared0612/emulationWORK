@@ -18,7 +18,7 @@ extern "C"
 
 // 定义额外的标志位
 #define cJSON_IsReference 256    // 是否为引用
-#define cJSON_StringIsContent 512 // 字符串是否为内容
+#define cJSON_StringIsConst 512 // 字符串是否为常量
 
 // 定义 cJSON 结构体
 typedef struct cJSON {
