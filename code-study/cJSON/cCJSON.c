@@ -312,7 +312,7 @@ char *cJSON_PrintBuffered(cJSON *item, int prebuffer, int fmt) {
 static const char *parse_value(cJSON *item, const char *value) {
     if(!value) return 0;
     if(!strncmp(value, "null", 4)) {item->type = cJSON_Null; return value+4;}
-    if(!strncmp(value, "false", 4)) {item->type = cJSON_False; return value+5;}
+    if(!strncmp(value, "false", 5)) {item->type = cJSON_False; return value+5;}
     if(!strncmp(value, "true", 4)) {item->type = cJSON_True; return value+4;}
     if(*value == '\"') {return parse_string(item, value);}
     if(*value == '-' || (*value >= '0' && *value <= '9')) {return parse_number(item, value);}
@@ -417,8 +417,8 @@ void cJSON_AddItemToArray(cJSON *array, cJSON *item) {
     } else {
         while(c && c->next) {
             c = c->next;
-            suffix_object(c, item);
         }
+        suffix_object(c, item);
     }
 }
 void cJSON_AddItemToObject(cJSON *object, const char *string, cJSON *item) {
