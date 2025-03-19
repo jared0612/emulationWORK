@@ -453,3 +453,47 @@ cJSON *cJSON_DetachItemFromArray(cJSON *array, int which) {
 void cJSON_DeleteItemFromArray(cJSON *array, int which) {cJSON_Delete(cJSON_DetachItemFromArray(array, which));}
 cJSON* cJSON_DetachItemFromObject(cJSON *object, const char *string) {int i = 0; cJSON *c = object->child; while(c && cJSON_strcasecmp(c->string, string)) i++, c = c->next; if(c) return cJSON_DetachItemFromArray(object,i); return 0;}
 void cJSON_DeleteItemFromObject(cJSON *object, const char *string) {cJSON_Delete(cJSON_DetachItemFromObject(object, string));}
+
+
+//插入到对象或数组中
+void cJSON_InsertItemInArray(cJSON *array, int which,  cJSON *newitem) {
+    cJSON *c= array->child; 
+    while(c && which > 0) 
+    c = c->next, which--; 
+    if (!c) {
+        cJSON_AddItemToArray(array, newitem); return;
+    }
+    //改变指针指向
+    newitem->prev = c->prev;
+    newitem->next = c;
+    c->prev = newitem;
+    if (c == array->child) array->child = newitem;
+    else newitem->prev->next = newitem;
+}
+
+void cJSON_ReplaceItemInArray(cJSON* array, int which, cJSON* newitem) {
+    cJSON *c= array->child; 
+    while(c && which > 0) 
+    c = c->next, which--; 
+    if(!c) return;
+
+    newitem->next = c->next;
+    newitem->prev = c->prev;
+    if(newitem->next) newitem->next->prev = newitem;
+
+    if (c == array->child) array->child = newitem;
+    else newitem->prev->next = newitem;    
+    c->next = c->prev = 0;
+    cJSON_Delete(c);
+}
+
+void cJSON_ReplaceItemInObject(cJSON *object, const char* string, cJSON *newitem){
+    cJSON *c = object->child; 
+    int i = 0; 
+    while(c && cJSON_strcasecmp(c->string, string)) i++, c = c->next;
+    if (c) 
+    {
+        newitem->string = cJSON_strup(string);
+        cJSON_ReplaceItemInArray(object, i, newitem);
+    }
+}
