@@ -386,7 +386,11 @@ static char *print_value(cJSON *item, int depth, int fmt, printbuffer *p) {
     }
     return out;
 }
-
+//TO DO core code.
+static const char* parse_array(cJSON *item, const char *value){}
+static print_array(cJSON *item, int depth, int fmt, printbuffer *p) {}
+static const char* parse_object(const *item, const char *value){}
+static char print_object(cJSON *item, int depth, int fmt, printbuffer *p ){}
 
 int cJSON_GetArraySize(cJSON *item) {cJSON *c = item->child; int size = 0; while(c) size++, c = c->next; return size;}
 //返回数组里的第item个元素
@@ -552,4 +556,73 @@ cJSON* cJSON_CreateStringArray(const char **strings, int count){
         p = n;
     }
     return a;
+}
+
+cJSON *cJSON_Duplicate(cJSON *item, int recurse) {
+    cJSON *newitem, *cptr, *nptr = 0, *newchild;
+    if(!item) return 0;
+    newitem = cJSON_New_Item();
+    if(!newitem) return 0;
+    newitem->type = item->type&(~cJSON_IsReference), newitem->valueint = item->valueint, newitem->valuedouble = item->valuedouble;
+    if (item->valuestring) {
+        newitem->valuestring = cJSON_strup(item->valuestring);
+        if(!newitem->valuestring) {
+            cJSON_Delete(newitem);
+            return 0;
+        }
+    }
+    if (item->string) {
+        newitem->string = cJSON_strup(item->string);
+        if(!newitem->string) {
+            cJSON_Delete(newitem);
+            return 0;
+        }
+    }
+    if (!recurse) {
+        return newitem;
+    }
+    cptr = item->child;
+    while(cptr) {
+        newchild = cJSON_Duplicate(cptr, 1);
+        if (!newchild) {
+            cJSON_Delete(newitem);
+            return 0;
+        }
+        if(nptr) {
+            nptr->next = newchild; 
+            newchild->prev = nptr;
+            nptr = newchild;
+        } else {
+            newitem->child = newchild;
+            nptr = newchild;
+        }
+        cptr = cptr->next;
+    }
+    return newitem;
+}
+
+void cJSON_Minify(char *json) {
+    char *into = json;
+    while(*json) {
+        if (*json == ' ') json++;
+        else if (*json == '\t') json++;
+        else if (*json == '\r') json++;
+        else if (*json == '\n') json++;
+        else if (*json == '/' && json[1] == '/') while(*json && *json != '\n') json++;
+        else if (*json == '/' && json[1] == '*') 
+        {
+            while(*json && !(*json == '*' && json[1] == '/')) json++;
+            json += 2;
+        }
+        else if (*json == '\"') {
+            *into++ = *json++;
+            while(*json && *json != '\"'){
+                if(*json == '\\') *into++ = *json++;
+                *into++ = *json++;
+            }
+            *into++ = *json++;
+        }
+        else *into++ = *json++;
+    }
+    *into = 0;
 }
