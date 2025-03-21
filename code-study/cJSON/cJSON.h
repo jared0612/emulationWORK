@@ -55,7 +55,7 @@ extern char *cJSON_PrintUnformatted(cJSON *item);
 extern char *cJSON_PrintBuffered(cJSON *item, int prebuffer, int fmt);
 
 // 删除 JSON 节点及其子节点
-extern void *cJSON_Delete(cJSON *c);
+extern void cJSON_Delete(cJSON *c);
 
 // 获取数组大小
 extern int cJSON_GetArraySize(cJSON *array);

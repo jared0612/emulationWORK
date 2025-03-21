@@ -7,11 +7,6 @@
 #include <stdlib.h>
 #include "cJSON.h"
 
-/*TO DO:
-    实现头文件中声明的函数
-    创建测试文件来测试json解析
-
-*/
 static const char *ep;
 
 const char *cJSON_GetErrorPtr(void) {return ep;}
@@ -38,15 +33,13 @@ static char* cJSON_strup(const char* str)
 
 void cJSON_InitHooks(cJSON_Hooks* hooks) 
 {
-    //如果传入结构体是空的
     if (!hooks) {
         cJSON_malloc = malloc;
         cJSON_free = free;
         return;
     }
-    //如果传入参数不为空
-    cJSON_malloc = (hooks->malloc_fn)?hooks->malloc_fn:malloc;
-    cJSON_free = (hooks->free_fn)?hooks->free_fn:free;
+    cJSON_malloc = (hooks->malloc_fn) ? hooks->malloc_fn : malloc;
+    cJSON_free = (hooks->free_fn) ? hooks->free_fn : free;
 }
 
 static cJSON* cJSON_New_Item(void)
@@ -256,7 +249,7 @@ static const char *parse_string(cJSON *item, const char *str) {
 
 static char *print_string_ptr(const char *str, printbuffer *p) {
     const char *ptr;
-    char* ptr2, *out,;
+    char* ptr2, *out;
     int len = 0, flag = 9;
     unsigned char token;
 
@@ -294,17 +287,17 @@ static char *print_string_ptr(const char *str, printbuffer *p) {
     ptr = str;
     *ptr2++ = '\"';
     while(*ptr) {
-        if((unsigned char)*ptr > 31 && *ptr !='\"' && *ptr = '\"') *ptr2++=*ptr++;
+        if(((unsigned char)*ptr > ' ') && *ptr !='\"' && *ptr != '\\') *ptr2++=*ptr++;
         else {
             *ptr2++='\\';
             switch (token = *ptr++) {
                 case '\\': *ptr2++='\\'; break;
-                case '\\': *ptr2++='\\'; break;
-                case '\\': *ptr2++='\\'; break;
-                case '\\': *ptr2++='\\'; break;
-                case '\\': *ptr2++='\\'; break;
-                case '\\': *ptr2++='\\'; break;
-                case '\\': *ptr2++='\\'; break;
+                case '\"': *ptr2++='\"'; break;
+                case '\b': *ptr2++='\b'; break;
+                case '\f': *ptr2++='\f'; break;
+                case '\n': *ptr2++='\n'; break;
+                case '\r': *ptr2++='\r'; break;
+                case '\t': *ptr2++='\t'; break;
                 default: sprintf(ptr2, "u%04x", token); break;
             }
         }
@@ -317,18 +310,18 @@ static char *print_string_ptr(const char *str, printbuffer *p) {
 static char *print_string(cJSON *item, printbuffer *p) {return print_string_ptr(item->valuestring, p);}
 
 
-static const char *parse_value(cJSON *item, const char *value);
-static char *print_value(cJSON *item, int depth, int fmt, printbuffer *p);
-static const char *parse_array(cJSON *item, const char *value);
-static char *print_array(cJSON *item, int depth, int fmt, printbuffer *p);
-static const char *parse_object(cJSON *item, const char *value);
-static char *print_object(cJSON *item, int depth, int fmt, printbuffer *p);
+static const char* parse_value(cJSON *item, const char *value);
+static char* print_value(cJSON *item, int depth, int fmt, printbuffer *p);
+static const char* parse_array(cJSON *item, const char *value);
+static char* print_array(cJSON *item, int depth, int fmt, printbuffer *p);
+static const char* parse_object(cJSON *item, const char *value);
+static char* print_object(cJSON *item, int depth, int fmt, printbuffer *p);
 
 //跳过换行和空格，ascii码的32是空格，因此在32以下范围都进行跳过；
 static const char* skip(const char *in) {while(in && *in && (unsigned char)*in <= 32) in++; return in;}
 
 //处理的都是字符数组的格式,选择选项选择来进行处理；
-cJSON *cJSON_ParseWithOpts(const char *value, const char **return_parse_end, int require_null_terminated) {
+cJSON* cJSON_ParseWithOpts(const char* value, const char** return_parse_end, int require_null_terminated) {
     const char *end = 0;
     cJSON *c = cJSON_New_Item();
     ep = 0;
@@ -351,7 +344,7 @@ cJSON *cJSON_ParseWithOpts(const char *value, const char **return_parse_end, int
 }
 
 //默认解析实现
-const char *cJSON_Parse(const char *value) {return cJSON_ParseWithOpts(value, 0, 0);}
+cJSON *cJSON_Parse(const char *value) {return cJSON_ParseWithOpts(value, 0, 0);}
 
 char *cJSON_Print(cJSON *item){ return print_value(item, 0, 1, 0);}
 char *cJSON_PrintUnformatted(cJSON *item){ return print_value(item, 0, 1, 0);}
@@ -449,10 +442,10 @@ static char* print_value(cJSON *item, int depth, int fmt, printbuffer *p) {
     }
     return out;
 }
-//TO DO core code.
+
 static const char* parse_array(cJSON *item, const char *value){
     cJSON *child;
-    if (*value != '[') {ep = value; return 0;}//错误位置
+    if (*value != '[') {ep = value; return 0;}
 
     item->type = cJSON_Array;
     value = skip(value+1);
@@ -469,21 +462,18 @@ static const char* parse_array(cJSON *item, const char *value){
         child->next = new_item;
         new_item->prev = child;
         child = new_item;
-        //解析逗号后边 加入到new_item中
-        value = skip(parse_value(child, skip(value+1)));//skip已经到下一个位置了；
+        value = skip(parse_value(child, skip(value+1)));
         if(!value)return 0;
     }
-    //到达结尾了.
     if (*value== ']')return value + 1;
-    // 未封闭数组比如[,,,则发生错误；
     ep = value;
     return 0;
 }
-static print_array(cJSON *item, int depth, int fmt, printbuffer *p) {
+static char* print_array(cJSON *item, int depth, int fmt, printbuffer *p) {
     char *out = 0,*ptr;
     int i = 0, len = 5;
     cJSON *child = item->child;
-    int numentries = 0, i = 0, fail = 0;
+    int numentries = 0, j = 0, fail = 0;
     size_t tmplen = 0;
 
     while(child) {
@@ -529,7 +519,7 @@ static print_array(cJSON *item, int depth, int fmt, printbuffer *p) {
     else {
         char **entries = (char**)cJSON_malloc(numentries * sizeof(char*));
         if(!entries) return 0;
-        memeset(entries, 0, numentries*sozepf(char*));
+        memset(entries, 0, numentries*sizeof(char*));
 
         child = item->child;
         char *ret;
@@ -538,7 +528,7 @@ static print_array(cJSON *item, int depth, int fmt, printbuffer *p) {
             /* code */
             ret = print_value(child, depth+1, fmt, 0);
             entries[i++] = ret;
-            if(ret) len += strnlen(ret) + 2 + (fmt?1:0);
+            if(ret) len += strlen(ret) + 2 + (fmt?1:0);
             else fail = 1;
             child = child->next;
         }
@@ -573,8 +563,176 @@ static print_array(cJSON *item, int depth, int fmt, printbuffer *p) {
     }
     return out;
 }
-static const char* parse_object(const *item, const char *value){}
-static char print_object(cJSON *item, int depth, int fmt, printbuffer *p ){}
+//To do
+static const char* parse_object(cJSON *item, const char *value){
+    cJSON *child;
+    if (*value != '{') {ep = value; return 0;}
+    item->type = cJSON_Object;
+    value = skip(value + 1);//跳到第一位有name的对象元素地方开始解析；
+    if(*value == '}') return value + 1;//说明是空的{}
+
+    //不为空，开始解析对象{key:value}
+    item->child = child = cJSON_New_Item();
+    if(!item->child) return 0;
+    //解析key
+    value = skip(parse_string(child, skip(value)));
+    if(!value) return 0;
+    child->string = child->valuestring;
+    child->valuestring = 0;
+    if(*value!=':') {ep = value; return 0;}
+    //解析value
+    value = skip(parse_value(child, skip(value + 1)));
+    if(!value) return 0;
+    
+    while(*value == ',') {
+        cJSON *new_item;
+        if(!(new_item = cJSON_New_Item())) return 0;//创建失败；
+
+        child->next = new_item;
+        new_item->prev = child;
+        child = new_item;
+
+        value = skip(parse_string(child, skip(value + 1)));
+        if(!value) return 0;
+
+        child->string = child->valuestring;
+        child->valuestring = 0;
+        if(*value != ':') {ep = value; return 0;}
+
+        value = skip(parse_value(child, skip(value + 1)));
+
+        if(!value) return 0;
+    }
+
+    if(*value == '}') return value + 1;
+    ep = value;
+    return 0;
+
+}
+static char* print_object(cJSON *item, int depth, int fmt, printbuffer *p ){
+    char **entries = 0, **names = 0;
+
+    char *out = 0, *ptr, *ret, *str;
+    int len = 7;
+    int i = 0; 
+    int j;
+    cJSON *child = item->child;
+    int numentries = 0, fail = 0;
+    size_t tmplen = 0;
+    
+    while(child) numentries++, child = child->next;
+
+    if(!numentries) {
+        if(p) out = ensure(p, fmt?depth+4:3);
+        else out = (char*)cJSON_malloc(fmt?depth+4:3);
+        if(!out) return 0;
+        ptr = out; *ptr++ = '{'; 
+        return out;
+    }
+    if (p) {
+        i = p->offset;
+        len = fmt?2:1;
+        ptr = ensure(p, len + 1);
+        if (!ptr) return 0;
+        *ptr++ = '{';
+        if(fmt) *ptr++ = '\n';
+        *ptr = 0;
+        p->offset += len;
+        child = item->child;
+        depth++;
+
+        while (child)
+        {
+            /* code */
+            if(fmt) {
+                ptr = ensure(p, depth);
+                if(!ptr)return 0;
+                for(j = 0; j < depth; j++) *ptr++ = '\t';
+            }
+            print_string_ptr(child->string, p);
+            p->offset = update(p);//更新offset位置
+
+            len = fmt?2:1;
+            ptr = ensure(p, len);
+            if(!ptr) return 0 ;
+            *ptr++ = ':';
+            if(fmt) *ptr++ = '\t';
+            p->offset += len;
+            print_value(child, depth, fmt, p);
+            p->offset = update(p);
+
+            len = fmt?2:1 + (child->next?1:0);
+            ptr = ensure(p, len);
+            if(!ptr) return 0 ;
+            if(child->next) *ptr++ = ',';
+            if(fmt) *ptr++ = '\n';
+            *ptr = 0;
+            p->offset += len;
+            child = child->next;
+        }
+        ptr = ensure(p, fmt?(depth+1):2);
+        if(fmt) for (i = 0; i < depth - 1; i++) *ptr++ = '\t';
+        *ptr++ = '}';
+        *ptr = 0;
+        out = (p->buffer) + i;
+    } else {
+        entries = (char**) cJSON_malloc(numentries*sizeof(char*));
+        if(!entries) return 0;
+        names = (char**) cJSON_malloc(numentries*sizeof(char*));
+        if(!names) {cJSON_free(entries); return 0;}
+        memset(entries, 0, sizeof(char*)*numentries);
+        memset(names, 0, sizeof(char*)*numentries);
+        child = item->child;
+        depth++;
+        if(fmt) len += depth;
+        while( child) {
+            names[i] = str = print_string_ptr(child->string, 0);
+            entries[i++] = ret = print_value(child, depth, fmt, 0);
+            if(str && ret) len += strlen(ret) + strlen(str) + 2 + (fmt?2+depth:0);
+            else fail = 1;
+            child = child->next;
+        }
+        if(!fail) out = (char*)cJSON_malloc(len);
+        if(!out) fail = 1;
+
+        // 处理错误信息；
+        if(fail) {
+            for(i = 0; i < numentries; i++) {
+                if(names[i]) cJSON_free(names[i]);
+                if(entries[i]) cJSON_free(entries[i]);
+            }
+            cJSON_free(names);
+            cJSON_free(entries);
+            return 0;        
+        }
+
+        *out = '{';
+        ptr = out + 1;
+        if(fmt) *ptr++ = '\n';
+        *ptr = 0;
+        for(i = 0; i < numentries; i++) {
+            if(fmt) for (j = 0; j < depth; j++) *ptr++ = '\t';
+            tmplen = strlen(names[i]);
+            memcpy(ptr, names[i], tmplen);
+            ptr += tmplen;
+            *ptr++ = ':'; if(fmt) *ptr++ = '\t';
+            strcpy(ptr, entries[i]);
+            ptr += strlen(entries[i]);
+            if(i!=numentries - 1) *ptr++ = ',';
+            if(fmt) *ptr++ = '\n';
+            *ptr = 0;
+            cJSON_free(names[i]);
+            cJSON_free(entries[i]);
+        }
+        cJSON_free(names);
+        cJSON_free(entries);
+        if(fmt) for (i = 0; i < depth - 1; i++) *ptr++ = '\t';
+        *ptr++ = '}';
+        *ptr++ = 0;
+        
+    }
+    return out;
+}
 
 int cJSON_GetArraySize(cJSON *item) {cJSON *c = item->child; int size = 0; while(c) size++, c = c->next; return size;}
 //返回数组里的第item个元素
@@ -586,7 +744,7 @@ static void suffix_object(cJSON *prev, cJSON *item) {prev->next = item; item->pr
 static cJSON *create_reference(cJSON *item) {
     cJSON *ref = cJSON_New_Item();
     if (!ref) return 0;
-    memccpy(ref, item, sizeof(item));
+    memcpy(ref, item, sizeof(cJSON));  // 修改为 sizeof(cJSON)
     ref->string = 0;
     ref->type |= cJSON_IsReference;
     ref->next = ref->prev = 0;
@@ -694,8 +852,7 @@ cJSON* cJSON_CreateArray(void) {cJSON *item = cJSON_New_Item(); if (item) item->
 cJSON* cJSON_CreateObject(void) {cJSON *item = cJSON_New_Item(); if (item) item->type = cJSON_Object; return item;}
 cJSON* cJSON_CreateBool(int b) {cJSON *item = cJSON_New_Item(); if (item) item->type = b?cJSON_True:cJSON_False; return item;}
 cJSON* cJSON_CreateNumber(double num) {cJSON *item = cJSON_New_Item(); if (item) { item->type = cJSON_Number; item->valuedouble = num; item->valueint = (int) num; }return item;}
-cJSON* cJSON_CreateString(const char *string) {cJSON *item = cJSON_New_Item(); if(item) item->valuestring = cJSON_strup(string);}
-
+cJSON* cJSON_CreateString(const char *string) {cJSON *item = cJSON_New_Item(); if(item) item->valuestring = cJSON_strup(string);return item;}
 //创建不同类型的array
 cJSON* cJSON_CreateIntArray(const int *numbers, int count){
     int i;
@@ -719,7 +876,7 @@ cJSON* cJSON_CreateFloatArray(const float *numbers, int count){
     }
     return a;
 }
-cJSON* cJSON_CreateDoubelArray(const double *numbers, int count){
+cJSON* cJSON_CreateDoubleArrayp(const double *numbers, int count){
     int i;
     cJSON *n = 0, *p = 0, *a = cJSON_CreateArray();
     for (i = 0; a && i < count; i++) {

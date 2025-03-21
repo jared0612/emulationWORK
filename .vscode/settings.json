@@ -3,6 +3,8 @@
         "vector": "cpp",
         "iostream": "cpp",
         "queue": "c",
-        "stack": "c"
+        "stack": "c",
+        "stdlib.h": "c",
+        "conio.h": "c"
     }
 }
