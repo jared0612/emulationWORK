@@ -108,4 +108,50 @@ crontab -e
 （表示每天凌晨 2:00 运行 `/home/user/backup.sh`）
 
 ---
+## **6. 服务器性能监控**
+### **（10）监控 CPU & 内存**
+**作用**：输出当前 CPU 和内存使用情况  
+```sh
+#!/bin/bash
+echo "CPU Usage:"
+top -b -n 1 | grep "Cpu(s)"
+echo "Memory Usage:"
+free -m
+```
 
+---
+
+## **7. 批量运维**
+### **（11）批量 SSH 登录执行命令**
+**作用**：在多个远程服务器上执行 `df -h` 命令（查询磁盘使用情况）  
+```sh
+#!/bin/bash
+SERVERS=("192.168.1.10" "192.168.1.11" "192.168.1.12")
+for SERVER in "${SERVERS[@]}"; do
+    echo "Checking disk usage on $SERVER..."
+    ssh user@$SERVER "df -h"
+done
+```
+
+---
+
+## **8. 其他**
+### **（12）生成随机密码**
+**作用**：生成一个 12 位随机密码  
+```sh
+#!/bin/bash
+tr -dc A-Za-z0-9 </dev/urandom | head -c 12; echo
+```
+
+### **（13）判断一个数是奇数还是偶数**
+```sh
+#!/bin/bash
+read -p "Enter a number: " num
+if ((num % 2 == 0)); then
+    echo "$num is even."
+else
+    echo "$num is odd."
+fi
+```
+
+---
