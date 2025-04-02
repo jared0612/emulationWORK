@@ -9,7 +9,13 @@
                 "-g",
                 "${file}",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+                "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "-I",
+                "C:\\Program Files\\MySQL\\MySQL Connector C++ 9.2\\include\\",
+                "-L",
+                "C:\\Program Files\\MySQL\\MySQL Connector C++ 9.2\\lib64\\",
+                "-lmysqlcppconn"
+
             ],
             "options": {
                 "cwd": "${fileDirname}"
